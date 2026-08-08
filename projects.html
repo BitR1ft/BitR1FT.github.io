@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Projects | BitR1FT</title>
+  <meta name="description" content="Security tools and platforms built by BitR1FT — pentesting platforms, SIEMs, VPNs, and more.">
+  <link rel="icon" href="bitr1ft.jpg">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav>
+    <a href="index.html" class="nav-brand">&lt;BitR1FT /&gt;</a>
+    <div class="nav-links">
+      <a href="index.html#about">About</a>
+      <a href="index.html#experience">Experience</a>
+      <a href="projects.html" class="active">Projects</a>
+      <a href="blog.html">Writeups</a>
+      <a href="AdeelHaider.pdf" target="_blank">Resume</a>
+      <a href="https://github.com/BitR1FT" target="_blank" rel="noopener noreferrer" class="github-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+      </a>
+    </div>
+    <button class="nav-hamburger" id="nav-hamburger" aria-label="Menu">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+    </button>
+  </nav>
+
+  <div class="mobile-menu" id="mobile-menu">
+    <a href="index.html#about">About</a>
+    <a href="index.html#experience">Experience</a>
+    <a href="projects.html">Projects</a>
+    <a href="blog.html">Writeups</a>
+    <a href="AdeelHaider.pdf" target="_blank">Resume</a>
+  </div>
+
+  <main>
+    <div style="padding:4rem 1rem 6rem;">
+      <div class="container" style="max-width:52rem;">
+
+        <div class="blog-list-header">
+          <h1 class="blog-list-title">Projects</h1>
+          <p class="blog-list-sub">Security tools and platforms I've built</p>
+          <div class="blog-list-line"></div>
+        </div>
+
+        <ul class="blog-list">
+
+          <!-- UniVex -->
+          <li>
+            <a href="https://github.com/BitR1ft/UniVex" target="_blank" rel="noopener noreferrer" class="blog-list-item">
+              <div class="blog-list-date">Jan 2025 — Present</div>
+              <div class="blog-list-content">
+                <div class="blog-list-name">UniVex</div>
+                <div class="blog-list-tags">
+                  <span class="blog-list-tag">FASTAPI</span>
+                  <span class="blog-list-tag">NEXT.JS</span>
+                  <span class="blog-list-tag">NEO4J</span>
+                  <span class="blog-list-tag">LANGGRAPH</span>
+                  <span class="blog-list-tag">DOCKER</span>
+                </div>
+                <p class="blog-list-desc">Full-stack agentic penetration testing platform that autonomously executes the complete offensive kill chain from recon to post-exploitation. Orchestrates 13 specialized LangGraph ReAct agents with 145+ integrated security tools, Neo4j-backed live attack graph with BloodHound overlay, and compliance report generation.</p>
+                <span class="blog-list-read">View on GitHub →</span>
+              </div>
+            </a>
+          </li>
+
+          <!-- SentinelHive -->
+          <li>
+            <a href="https://github.com/BitR1ft/SentinelHive" target="_blank" rel="noopener noreferrer" class="blog-list-item">
+              <div class="blog-list-date">Jan 2026 — Present</div>
+              <div class="blog-list-content">
+                <div class="blog-list-name">SentinelHive</div>
+                <div class="blog-list-tags">
+                  <span class="blog-list-tag">SPLUNK</span>
+                  <span class="blog-list-tag">WAZUH</span>
+                  <span class="blog-list-tag">ELASTIC-STACK</span>
+                  <span class="blog-list-tag">MISP</span>
+                  <span class="blog-list-tag">MITRE-ATT&CK</span>
+                </div>
+                <p class="blog-list-desc">Self-hosted SIEM using Splunk, Wazuh, and the Elastic Stack to monitor authentication events, endpoint telemetry, and network activity across multiple endpoints. 40+ Sigma detection rules mapped to MITRE ATT&CK and validated against realistic attack scenarios. Automated alert enrichment using MISP, OpenCTI, VirusTotal, and AbuseIPDB.</p>
+                <span class="blog-list-read">View on GitHub →</span>
+              </div>
+            </a>
+          </li>
+
+          <!-- SecureVPN -->
+          <li>
+            <a href="https://github.com/BitR1ft/SecureVPN" target="_blank" rel="noopener noreferrer" class="blog-list-item">
+              <div class="blog-list-date">May 2026</div>
+              <div class="blog-list-content">
+                <div class="blog-list-name">SecureVPN</div>
+                <div class="blog-list-tags">
+                  <span class="blog-list-tag">WIREGUARD</span>
+                  <span class="blog-list-tag">KYBER-512</span>
+                  <span class="blog-list-tag">FLASK</span>
+                  <span class="blog-list-tag">DOCKER</span>
+                  <span class="blog-list-tag">AZURE</span>
+                </div>
+                <p class="blog-list-desc">Post-quantum WireGuard VPN on Azure with IND-CCA2 secure hybrid key exchange (Kyber-512, X25519, HKDF-SHA3-256). Hardened Flask API with Redis rate limiting, HMAC-SHA256 replay protection, and a full Windows client with kill switch, DNS leak protection, TOFU key pinning, and DPAPI secure key storage.</p>
+                <span class="blog-list-read">View on GitHub →</span>
+              </div>
+            </a>
+          </li>
+
+          <!-- SentinelTrace -->
+          <li>
+            <a href="https://github.com/BitR1ft/SentinelTrace" target="_blank" rel="noopener noreferrer" class="blog-list-item">
+              <div class="blog-list-date">Apr 2026</div>
+              <div class="blog-list-content">
+                <div class="blog-list-name">SentinelTrace</div>
+                <div class="blog-list-tags">
+                  <span class="blog-list-tag">PYTHON</span>
+                  <span class="blog-list-tag">PTRACE</span>
+                  <span class="blog-list-tag">PYQT6</span>
+                  <span class="blog-list-tag">SECCOMP</span>
+                  <span class="blog-list-tag">LINUX</span>
+                </div>
+                <p class="blog-list-desc">Linux process monitoring tool that intercepts syscalls at the kernel level via ptrace, runs a YAML-driven behavioral detection engine against multiple threat rules, and surfaces alerts through a live PyQt6 dashboard with SQLite-backed forensic replay and sandbox isolation using namespaces and seccomp filtering.</p>
+                <span class="blog-list-read">View on GitHub →</span>
+              </div>
+            </a>
+          </li>
+
+          <!-- ICTDS -->
+          <li>
+            <a href="https://github.com/BitR1ft/ICTDS" target="_blank" rel="noopener noreferrer" class="blog-list-item">
+              <div class="blog-list-date">Sep 2025 — Jan 2026</div>
+              <div class="blog-list-content">
+                <div class="blog-list-name">ICTDS</div>
+                <div class="blog-list-tags">
+                  <span class="blog-list-tag">C++</span>
+                  <span class="blog-list-tag">PYTHON</span>
+                  <span class="blog-list-tag">DATA-STRUCTURES</span>
+                  <span class="blog-list-tag">AHO-CORASICK</span>
+                </div>
+                <p class="blog-list-desc">Threat detection application using 7 data structures (Trie, AVL Tree, Graph, Max-Heap, Hash Table) for malware signature matching, ransomware monitoring, and intrusion analysis with Aho-Corasick multi-pattern engine and BFS/DFS artifact discovery.</p>
+                <span class="blog-list-read">View on GitHub →</span>
+              </div>
+            </a>
+          </li>
+
+          <!-- NetSpector -->
+          <li>
+            <a href="https://github.com/BitR1ft/NetSpector" target="_blank" rel="noopener noreferrer" class="blog-list-item">
+              <div class="blog-list-date">Sep 2025 — Jan 2026</div>
+              <div class="blog-list-content">
+                <div class="blog-list-name">NetSpector</div>
+                <div class="blog-list-tags">
+                  <span class="blog-list-tag">PYTHON</span>
+                  <span class="blog-list-tag">WIRESHARK</span>
+                  <span class="blog-list-tag">PCAP</span>
+                  <span class="blog-list-tag">PROTOCOL-DISSECTION</span>
+                </div>
+                <p class="blog-list-desc">PCAP/PCAPNG analyzer with deep packet inspection across Ethernet, IP, TCP, UDP, ICMP, DNS, and HTTP. Detection for port scans, SYN floods, DNS tunneling, credential leakage, TCP session reconstruction, bidirectional flow analysis, and file carving from streams.</p>
+                <span class="blog-list-read">View on GitHub →</span>
+              </div>
+            </a>
+          </li>
+
+          <!-- VaultGuard++ -->
+          <li>
+            <a href="https://github.com/BitR1ft/VaultGuard" target="_blank" rel="noopener noreferrer" class="blog-list-item">
+              <div class="blog-list-date">May 2025 — Jun 2025</div>
+              <div class="blog-list-content">
+                <div class="blog-list-name">VaultGuard++</div>
+                <div class="blog-list-tags">
+                  <span class="blog-list-tag">C++</span>
+                  <span class="blog-list-tag">PYTHON</span>
+                  <span class="blog-list-tag">XCHACHA20-POLY1305</span>
+                  <span class="blog-list-tag">AES-256</span>
+                  <span class="blog-list-tag">ARGON2ID</span>
+                </div>
+                <p class="blog-list-desc">Offline-first, zero-knowledge password manager using XChaCha20-Poly1305, AES-256, and Argon2id with brute-force prevention, session lockout, audit trails, and encrypted cloud backup via Google Drive API with OAuth 2.0.</p>
+                <span class="blog-list-read">View on GitHub →</span>
+              </div>
+            </a>
+          </li>
+
+          <!-- Fly and Spy -->
+          <li>
+            <a href="https://github.com/BitR1ft/Fly-and-Spy" target="_blank" rel="noopener noreferrer" class="blog-list-item">
+              <div class="blog-list-date">Dec 2024 — Jan 2025</div>
+              <div class="blog-list-content">
+                <div class="blog-list-name">Fly and Spy</div>
+                <div class="blog-list-tags">
+                  <span class="blog-list-tag">PYTHON</span>
+                  <span class="blog-list-tag">WINDOWS-PERSISTENCE</span>
+                  <span class="blog-list-tag">MULTI-THREADING</span>
+                </div>
+                <p class="blog-list-desc">Stealth keylogger embedded inside a Flappy Bird clone demonstrating trojanizing, Windows startup persistence, and multi-threaded background exfiltration for academic malware awareness.</p>
+                <span class="blog-list-read">View on GitHub →</span>
+              </div>
+            </a>
+          </li>
+
+        </ul>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-contact">
+        <a href="mailto:adeelhaider304@gmail.com">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+          adeelhaider304@gmail.com
+        </a>
+        <span class="sep"></span>
+        <span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          0330-6869777
+        </span>
+        <span class="sep"></span>
+        <span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+          Islamabad, Pakistan
+        </span>
+        <span class="sep"></span>
+        <a href="https://github.com/BitR1FT" target="_blank" rel="noopener noreferrer">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+          BitR1FT
+        </a>
+        <span class="sep"></span>
+        <a href="https://www.linkedin.com/in/4deel/" target="_blank" rel="noopener noreferrer">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg>
+          4deel
+        </a>
+      </div>
+      <div class="footer-bottom">
+        <p class="footer-left">&copy; 2025 <span class="green">BitR1FT</span> — Adeel Haider</p>
+        <p class="footer-right">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" x2="20" y1="19" y2="19"/></svg>
+          Built with passion &amp; caffeine
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          <span class="accent">pwn all the things</span>
+        </p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="main.js"></script>
+</body>
+</html>

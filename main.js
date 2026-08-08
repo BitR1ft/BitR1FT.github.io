@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
-   BitR1FT Portfolio — Interactivity (Pure JS)
+   BitR1FT Portfolio — Interactivity v2.0
    ═══════════════════════════════════════════════════ */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (nav) {
     window.addEventListener('scroll', () => {
       nav.classList.toggle('scrolled', window.scrollY > 50);
-    });
+    }, { passive: true });
   }
 
   // ── Mobile menu toggle ──
@@ -44,6 +44,45 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }, 70);
     }, 400);
+  }
+
+  // ── Scroll Reveal (IntersectionObserver) ──
+  const revealElements = document.querySelectorAll('.reveal, .reveal-stagger');
+  if (revealElements.length > 0) {
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, {
+      threshold: 0.08,
+      rootMargin: '0px 0px -40px 0px'
+    });
+
+    revealElements.forEach(el => revealObserver.observe(el));
+  }
+
+  // ── Smooth active nav link highlighting ──
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-links a[href^="#"]');
+  if (sections.length > 0 && navLinks.length > 0) {
+    const sectionObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const id = entry.target.getAttribute('id');
+          navLinks.forEach(link => {
+            link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
+          });
+        }
+      });
+    }, {
+      threshold: 0.3,
+      rootMargin: '-80px 0px -50% 0px'
+    });
+
+    sections.forEach(section => sectionObserver.observe(section));
   }
 
 });
