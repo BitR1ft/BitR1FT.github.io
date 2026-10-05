@@ -1,18 +1,36 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HTB Writeups | BitR1FT</title>
-  <meta name="description" content="HackTheBox machine walkthroughs — full attack chain breakdowns by BitR1FT">
+  <title>HackTheBox Writeups and CTF Walkthroughs | BitR1FT - Full Attack Chain Breakdowns</title>
+  <meta name="description" content="Detailed HackTheBox machine writeups and CTF walkthroughs by BitR1FT (Adeel Haider). Step-by-step attack chains covering SSRF, RCE, privilege escalation, Docker escapes, SQL injection, and more.">
+  <meta name="keywords" content="HackTheBox writeups, HTB walkthroughs, CTF writeups, penetration testing writeups, SSRF exploit, RCE, privilege escalation, Docker escape, SQL injection, BitR1FT, cybersecurity writeups, hack the box solutions">
+  <meta name="author" content="Adeel Haider (BitR1FT)">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#0b0a0a">
+  <link rel="canonical" href="https://bitr1ft.github.io/blog.html">
   <link rel="icon" href="bitr1ft.jpg">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="BitR1FT">
+  <meta property="og:title" content="HackTheBox Writeups and CTF Walkthroughs | BitR1FT">
+  <meta property="og:description" content="Detailed HackTheBox writeups with full attack chain breakdowns. SSRF, RCE, privesc, Docker escapes, and more.">
+  <meta property="og:url" content="https://bitr1ft.github.io/blog.html">
+  <meta property="og:image" content="https://bitr1ft.github.io/profile.jpg">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="HackTheBox Writeups | BitR1FT">
+  <meta name="twitter:description" content="Detailed HTB writeups with full attack chain breakdowns.">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"CollectionPage","name":"HackTheBox Writeups","description":"Detailed HackTheBox writeups by BitR1FT.","url":"https://bitr1ft.github.io/blog.html","author":{"@type":"Person","name":"Adeel Haider","alternateName":"BitR1FT"}}</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
+
   <!-- Navigation -->
   <nav>
-    <a href="index.html" class="nav-brand">&lt;BitR1FT /&gt;</a>
+    <a href="index.html" class="nav-brand">BitR1FT<span class="cursor"></span></a>
     <div class="nav-links">
       <a href="index.html#about">About</a>
       <a href="index.html#experience">Experience</a>
@@ -42,11 +60,33 @@
 
         <div class="blog-list-header">
           <h1 class="blog-list-title">Writeups</h1>
-          <p class="blog-list-sub">HackTheBox machine walkthroughs — full attack chain breakdowns</p>
+          <p class="blog-list-sub">Full walkthroughs from initial recon to root — every command, every pivot, every rabbit hole.</p>
           <div class="blog-list-line"></div>
         </div>
 
         <ul class="blog-list">
+
+          <!-- Layover -->
+          <li>
+            <a href="layover.html" class="blog-list-item">
+              <div class="blog-list-date">October 5, 2026</div>
+              <div class="blog-list-content">
+                <div class="blog-list-name">
+                  Layover
+                  <span class="badge badge-hard">Hard</span>
+                </div>
+                <div class="blog-list-tags">
+                  <span class="blog-list-tag">WIFI-SNIFFING</span>
+                  <span class="blog-list-tag">CRAFT-CMS-RCE</span>
+                  <span class="blog-list-tag">CVE-2026-34990</span>
+                  <span class="blog-list-tag">CUPS-LPE</span>
+                  <span class="blog-list-tag">YII2-INJECTION</span>
+                </div>
+                <p class="blog-list-desc">Connected via RDP to a jumpbox, sniffed open Wi-Fi traffic for cleartext credentials, exploited Craft CMS 5.9.8 authenticated RCE via Yii2 behavior injection, decrypted service account password from database, and escalated to root through CUPS 2.4.16 LPE.</p>
+                <span class="blog-list-read">Read more →</span>
+              </div>
+            </a>
+          </li>
 
           <!-- Cohort -->
           <li>
@@ -253,7 +293,7 @@
         </a>
       </div>
       <div class="footer-bottom">
-        <p class="footer-left">&copy; 2025 <span class="green">BitR1FT</span> — Adeel Haider</p>
+        <p class="footer-left">&copy; 2026 <span class="accent">BitR1FT</span> — Adeel Haider</p>
         <p class="footer-right">
           <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" x2="20" y1="19" y2="19"/></svg>
           Built with passion &amp; caffeine
@@ -264,6 +304,6 @@
     </div>
   </footer>
 
-  <script src="main.js"></script>
+  <script src="main.js" defer></script>
 </body>
 </html>

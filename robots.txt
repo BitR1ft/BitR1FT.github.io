@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://bitr1ft.github.io/sitemap.xml
