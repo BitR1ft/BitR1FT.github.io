@@ -66,6 +66,49 @@
 
         <ul class="blog-list">
 
+          
+          <!-- Stream -->
+          <li>
+            <a href="stream.html" class="blog-list-item">
+              <div class="blog-list-date">October 16, 2026</div>
+              <div class="blog-list-content">
+                <div class="blog-list-name">
+                  Stream
+                  <span class="badge badge-medium">Medium</span>
+                </div>
+                <div class="blog-list-tags">
+                  <span class="blog-list-tag">XXE</span>
+                  <span class="blog-list-tag">HEAPDUMP-LEAK</span>
+                  <span class="blog-list-tag">KAFKA</span>
+                  <span class="blog-list-tag">CLICKHOUSE</span>
+                  <span class="blog-list-tag">SYSTEMD-TIMER</span>
+                </div>
+                <p class="blog-list-desc">Exploited an exposed Spring Boot Actuator heapdump to recover ClickHouse credentials, leveraged XXE in the AIDX ingest API to read Kafka config, reused SASL password for SSH, then abused a root systemd timer and ClickHouse file() write for root.</p>
+                <span class="blog-list-read">Read more &#x2192;</span>
+              </div>
+            </a>
+          </li>
+          <!-- Touch -->
+          <li>
+            <a href="touch.html" class="blog-list-item">
+              <div class="blog-list-date">October 10, 2026</div>
+              <div class="blog-list-content">
+                <div class="blog-list-name">
+                  Touch
+                  <span class="badge badge-medium">Medium</span>
+                </div>
+                <div class="blog-list-tags">
+                  <span class="blog-list-tag">INFO-DISCLOSURE</span>
+                  <span class="blog-list-tag">KIOSK-ESCAPE</span>
+                  <span class="blog-list-tag">DEFAULT-CREDS</span>
+                  <span class="blog-list-tag">MYSQL-UDF</span>
+                </div>
+                <p class="blog-list-desc">Exploited an unauthenticated DeviceHub API that leaked the device serial used as the default password, escaped a locked-down RDP kiosk via Edge file:// protocol, then escalated to SYSTEM by loading a malicious MySQL UDF.</p>
+                <span class="blog-list-read">Read more &#x2192;</span>
+              </div>
+            </a>
+          </li>
+
           <!-- Layover -->
           <li>
             <a href="layover.html" class="blog-list-item">
